@@ -1,0 +1,92 @@
+###################################################################
+#
+#  makefile.mgw - Zangband makefile for MinGW-w64 (Win32/Win64)
+#
+#  Cross-compile from Linux:
+#
+#    make -f makefile.mgw
+#    make -f makefile.mgw install      (copies zangband.exe to ..)
+#
+#  Other toolchains / targets:
+#
+#    make -f makefile.mgw CROSS=i686-w64-mingw32-      (32-bit)
+#    make -f makefile.mgw CROSS=                       (native MSYS2)
+#
+#  Works with Debian/Ubuntu "gcc-mingw-w64" or llvm-mingw.
+#
+#  The l-*.c Lua bindings are pre-generated and shipped; they are
+#  not rebuilt here.
+#
+###################################################################
+
+CROSS   ?= x86_64-w64-mingw32-
+CC      = $(CROSS)gcc
+WINDRES = $(CROSS)windres
+
+EXE_FILE = zangband.exe
+
+# Keep objects apart from the native (Unix) build's *.o files
+OBJDIR  = obj-win
+
+CFLAGS  ?= -O2
+CFLAGS  += -DWINDOWS -I. -Ilua
+LDFLAGS += -mwindows -static
+LIBS    = -lwinmm -lgdi32 -lcomdlg32
+
+###################################################################
+
+LUAOBJS = \
+	lua/lapi.o lua/ldebug.o lua/lmem.o lua/lstrlib.o lua/lvm.o \
+	lua/tolua_lb.o lua/lauxlib.o lua/ldo.o lua/lobject.o \
+	lua/ltable.o lua/lzio.o lua/tolua_rg.o lua/lbaselib.o \
+	lua/lfunc.o lua/lparser.o lua/ltests.o lua/tolua_bd.o \
+	lua/tolua_tm.o lua/lcode.o lua/lgc.o lua/lstate.o \
+	lua/ltm.o lua/tolua_eh.o lua/tolua_tt.o lua/ldblib.o \
+	lua/llex.o lua/lstring.o lua/lundump.o lua/tolua_gp.o
+
+OBJS = \
+	z-virt.o z-util.o z-term.o z-rand.o z-form.o \
+	variable.o tables.o util.o cave.o \
+	object1.o object2.o monster1.o monster2.o \
+	xtra1.o xtra2.o spells1.o spells2.o spells3.o \
+	melee1.o melee2.o save.o load.o files.o fields.o \
+	cmd1.o cmd2.o cmd3.o cmd4.o cmd5.o cmd6.o \
+	store.o birth.o ui.o wizard1.o wizard2.o \
+	grid.o streams.o rooms.o generate.o dungeon.o \
+	init1.o init2.o effects.o quest.o racial.o run.o \
+	script.o artifact.o mutation.o flavor.o \
+	mspells1.o mspells2.o scores.o mind.o bldg.o \
+	obj_kind.o wild1.o wild2.o wild3.o avatar.o notes.o \
+	main-win.o maid-grf.o readdib.o \
+	l-monst.o l-object.o l-player.o l-random.o l-ui.o \
+	l-misc.o l-spell.o l-field.o \
+	zbmagic1.o zbmagic2.o zbmagic3.o \
+	zborg1.o zborg2.o zborg3.o zborg4.o zborg5.o \
+	zborg6.o zborg7.o zborg8.o zborg9.o \
+	$(LUAOBJS) \
+	angband.res.o
+
+WINOBJS = $(addprefix $(OBJDIR)/,$(OBJS))
+
+###################################################################
+
+all: $(EXE_FILE)
+
+$(EXE_FILE): $(WINOBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(WINOBJS) $(LIBS)
+
+$(OBJDIR)/angband.res.o: angband.rc angband.ico
+	@mkdir -p $(dir $@)
+	$(WINDRES) $< -O coff -o $@
+
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+install: $(EXE_FILE)
+	cp $(EXE_FILE) ..
+
+clean:
+	-rm -rf $(OBJDIR) $(EXE_FILE)
+
+.PHONY: all install clean

@@ -245,6 +245,16 @@
  */
 #include <windows.h>
 
+/*
+ * Old compilers (e.g. Borland 5.5) lack the pointer-sized window-data
+ * accessors needed on 64-bit Windows.
+ */
+#ifndef GetWindowLongPtr
+# define GetWindowLongPtr GetWindowLong
+# define SetWindowLongPtr SetWindowLong
+# define LONG_PTR LONG
+#endif
+
 #ifdef USE_SOUND
 
 /*
@@ -3915,7 +3925,7 @@ static void handle_wm_paint(HWND hWnd)
 	term_data *td;
 
 	/* Acquire proper "term_data" info */
-	td = (term_data *)GetWindowLong(hWnd, 0);
+	td = (term_data *)GetWindowLongPtr(hWnd, 0);
 
 	BeginPaint(hWnd, &ps);
 
@@ -3958,7 +3968,7 @@ static LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 #endif /* USE_SAVER */
 
 	/* Acquire proper "term_data" info */
-	td = (term_data *)GetWindowLong(hWnd, 0);
+	td = (term_data *)GetWindowLongPtr(hWnd, 0);
 
 	/* Handle message */
 	switch (uMsg)
@@ -3966,7 +3976,7 @@ static LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 		/* XXX XXX XXX */
 		case WM_NCCREATE:
 		{
-			SetWindowLong(hWnd, 0, (LONG)(my_td));
+			SetWindowLongPtr(hWnd, 0, (LONG_PTR)(my_td));
 			break;
 		}
 
@@ -4282,7 +4292,7 @@ static LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 
 
 	/* Acquire proper "term_data" info */
-	td = (term_data *)GetWindowLong(hWnd, 0);
+	td = (term_data *)GetWindowLongPtr(hWnd, 0);
 
 	/* Process message */
 	switch (uMsg)
@@ -4290,7 +4300,7 @@ static LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 		/* XXX XXX XXX */
 		case WM_NCCREATE:
 		{
-			SetWindowLong(hWnd, 0, (LONG)(my_td));
+			SetWindowLongPtr(hWnd, 0, (LONG_PTR)(my_td));
 			break;
 		}
 
@@ -5039,7 +5049,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 		wc.style         = CS_CLASSDC;
 		wc.lpfnWndProc   = AngbandWndProc;
 		wc.cbClsExtra    = 0;
-		wc.cbWndExtra    = 4; /* one long pointer to term_data */
+		wc.cbWndExtra    = sizeof(term_data *); /* pointer to term_data */
 		wc.hInstance     = hInst;
 		wc.hIcon         = hIcon = LoadIcon(hInst, "ANGBAND");
 		wc.hCursor       = LoadCursor(NULL, IDC_ARROW);

@@ -1,0 +1,55 @@
+Zangband now cross-compiles to a 64-bit Windows executable from this Linux box.
+The build finishes with no errors, but I haven't run the game on Windows.
+There's no Windows machine or Wine here, so that's the next thing to check.
+
+How to build
+
+  1. Install the MinGW-w64 cross-compiler once: sudo apt install gcc-mingw-w64-x86-64. I couldn't run apt here because sudo is blocked in my sandbox, so I tested with a downloaded copy of
+     the llvm-mingw toolchain in my scratch space. The makefile should work with either one.
+  2. Build and copy the exe into place:
+  cd src
+  make -f makefile.mgw          # builds src/zangband.exe
+  make -f makefile.mgw install  # copies it to the top level, next to lib/
+     For a 32-bit build, add CROSS=i686-w64-mingw32-.
+  3. To ship it, zip zangband.exe together with the lib/ directory. The fonts, tiles and sounds in lib/xtra/ are already there. The exe only uses DLLs that come with Windows 10, so nothing
+     else needs installing.
+
+  What changed
+
+  - New src/makefile.mgw: based on the file list in the old Borland makefile. It also builds the icon/menu resources. It puts Windows object files in src/obj-win/ so they don't mix with the
+    Linux .o files that sit next to the sources. It uses the Lua binding files already in the repo instead of regenerating them.
+  - Fix in src/main-win.c: the Windows interface stored a pointer to each window's data in a 4-byte slot (GetWindowLong/SetWindowLong, cbWndExtra = 4). On 64-bit Windows pointers are 8
+    bytes, so this would have cut them in half and crashed as soon as a window opened. It now uses Get/SetWindowLongPtr with a pointer-sized slot. A small fallback keeps the old Borland
+    build compiling.
+  - .gitignore: now ignores *.exe and src/obj-win/.
+
+  I also checked the rest of the code for 64-bit size problems. The remaining warnings are harmless, and savefiles aren't affected because long stays 32-bit on Windows.
+
+  Nothing is committed yet. Some untracked dotfiles have appeared at the repo root (.bashrc, .zshrc, .gitconfig and others). I didn't create them on purpose; they're probably left over from
+  my sandbox. Please check them before running git add -A.
+--
+
+I added scripts/release-win.sh, which builds the game for Windows and packages it with lib/. I ran it and it produced dist/zangband-2.7.6-win64.zip (about 6 MB, 386 entries). The game
+  still hasn't been run on Windows.
+
+  scripts/release-win.sh                           # → dist/zangband-2.7.6-win64.zip
+  CROSS=i686-w64-mingw32- scripts/release-win.sh   # → dist/zangband-2.7.6-win32.zip
+
+  What the script does:
+  1. Does a clean rebuild with src/makefile.mgw, so objects from a previous 32-bit or 64-bit build don't get reused.
+  2. Reads the version from src/defines.h, following the same rules the game uses.
+  3. Copies files into a temporary folder, then zips it as zangband-<ver>-<arch>/. The zip contains zangband.exe, readme.txt (renamed from readme so Windows opens it), z_faq.txt,
+     z_update.txt and lib/.
+
+  What it leaves out of lib/:
+  - lib/save/1000.Ryan: your local savefile.
+  - Scores (lib/apex/*.raw) and anything in lib/bone and lib/user: local player data. The empty folders are still in the zip, since the game writes into them.
+  - lib/data/*.raw: these are data caches compiled on Linux. The 64-bit Linux build stores some values at a different size than Windows, so they would be the wrong format there. The game
+    rebuilds them from lib/edit/*.txt when they're missing (src/init2.c:497-599).
+  - makefile.zb files: only used by the Unix build.
+  - lib/script/tk: only used by the Tk version of the game. The Lua scripts in lib/script are included.
+
+  I also added dist/ to .gitignore. The script needs zip and a MinGW cross-compiler on your PATH. The Linux build's .o files were left alone. None of this is committed yet.
+
+
+
