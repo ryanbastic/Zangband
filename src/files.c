@@ -769,6 +769,10 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 						break;
 					case GRAPHICS_HALF_3D: v = "none";
 						break;
+					case GRAPHICS_NOMAD: v = "nomad";
+						break;
+					case GRAPHICS_NEON: v = "neon";
+						break;
 				}
 			}
 
@@ -784,13 +788,14 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			/* Race */
 			else if (streq(b + 1, "RACE"))
 			{
-				v = rp_ptr->title;
+				/* No character yet at startup */
+				v = rp_ptr ? rp_ptr->title : "";
 			}
 
 			/* Class */
 			else if (streq(b + 1, "CLASS"))
 			{
-				v = cp_ptr->title;
+				v = cp_ptr ? cp_ptr->title : "";
 			}
 
 			/* Player */

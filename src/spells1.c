@@ -57,9 +57,7 @@ static byte mh_attr(int max)
 static byte spell_color(int type)
 {
 	/* Check if can use graphics */
-	if ((use_graphics == GRAPHICS_ADAM_BOLT)
-		|| (use_graphics == GRAPHICS_HALF_3D)
-		|| (use_graphics == GRAPHICS_DAVID_GERVAIS))
+	if (use_graphics)
 	{
 		/* Analyze */
 		switch (type)

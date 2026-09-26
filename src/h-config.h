@@ -181,6 +181,15 @@
 # define L64
 #endif
 
+/*
+ * Modern 64-bit Unix (x86_64 etc.) uses 64-bit longs too.  Detect this
+ * here rather than relying on autoconf.h, which the z-*.c files never
+ * include -- otherwise u32b has different sizes in different files.
+ */
+#if (defined(__LP64__) || defined(_LP64)) && !defined(L64)
+# define L64
+#endif
+
 
 /*
  * We need to define this for Microsoft Dev studio to use the

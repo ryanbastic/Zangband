@@ -41,4 +41,12 @@ V:31:0x01:0x60:0xF0:0x40
 ?:[EQU $GRAF david]
 %:graf-dvg.prf
 
+# Nomad's tiles
+?:[EQU $GRAF nomad]
+%:graf-nmd.prf
+
+# Neon tiles
+?:[EQU $GRAF neon]
+%:graf-neo.prf
+
 ?:1

@@ -7,5 +7,8 @@ srcfiles += lib/xtra/graf/makefile.zb
 files += lib/xtra/graf/16x16.bmp \
 		lib/xtra/graf/8x13.bmp \
 		lib/xtra/graf/8x8.bmp \
-		lib/xtra/graf/mask.bmp
+		lib/xtra/graf/mask.bmp \
+		lib/xtra/graf/32x32.bmp \
+		lib/xtra/graf/nomad.bmp \
+		lib/xtra/graf/neon.bmp
 

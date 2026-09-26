@@ -105,7 +105,7 @@ cptr help_x11[] =
 	"-d    Set display name",
 #ifdef USE_GRAPHICS
 	"-s    Turn off smoothscaling graphics",
-	"-b#   Set tileset bitmap",
+	"-b#   Set tileset: 8, 16, 32, nomad or neon (with -g)",
 #endif /* USE_GRAPHICS */
 	"-n#   Number of terms to use",
 	NULL
@@ -1482,6 +1482,9 @@ struct term_data
 	/* Temporary storage for overlaying tiles. */
 	XImage *TmpImage;
 
+	/* The "see through" colour of the tiles */
+	unsigned long blank;
+
 #endif /* USE_GRAPHICS */
 
 };
@@ -1830,8 +1833,9 @@ static void paste_x11_send(XSelectionRequestEvent *rq)
 		target_list[0] = xa_targets;
 		target_list[1] = XA_STRING;
 
+		/* Atom lists are format 32 (passed as longs, even on 64-bit) */
 		XChangeProperty(DPY, rq->requestor, rq->property, rq->target,
-		                (8 * sizeof(target_list[0])), PropModeReplace,
+		                32, PropModeReplace,
 		                (unsigned char *)target_list,
 		                (sizeof(target_list) / sizeof(target_list[0])));
 
@@ -2335,6 +2339,9 @@ static errr Term_xtra_x11(int n, int v)
 
 		/* React to changes */
 		case TERM_XTRA_REACT: return (Term_xtra_x11_react());
+
+		/* Make a sound */
+		case TERM_XTRA_SOUND: play_sound_unix(v); return (0);
 	}
 
 	/* Unknown */
@@ -2483,11 +2490,8 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp,
 		}
 		else
 		{
-			/* Mega Hack^2 - assume the top left corner is "blank" */
-			if (arg_graphics == GRAPHICS_DAVID_GERVAIS)
-				blank = XGetPixel(tiles, 0, 0);
-			else
-				blank = XGetPixel(tiles, 0, hgt * 6);
+			/* The tile sheets use pure black for "see through" */
+			blank = td->blank;
 	
 			for (k = 0; k < wid; k++)
 			{
@@ -2775,15 +2779,16 @@ errr init_x11(int argc, char *argv[])
 		
 		if (prefix(argv[i], "-b"))
 		{
-			int bitdepth = 0;
-			
-			bitdepth = atoi(&argv[i][2]);
-			
+			cptr set = &argv[i][2];
+			int bitdepth = atoi(set);
+
 			/* Paranoia */
 			if (bitdepth == 32) graphmode = GRAPHICS_DAVID_GERVAIS;
 			if (bitdepth == 16) graphmode = GRAPHICS_ADAM_BOLT;
 			if (bitdepth == 8) graphmode = GRAPHICS_ORIGINAL;
-			
+			if (streq(set, "nomad")) graphmode = GRAPHICS_NOMAD;
+			if (streq(set, "neon")) graphmode = GRAPHICS_NEON;
+
 			continue;
 		}
 #endif /* USE_GRAPHICS */
@@ -2802,6 +2807,9 @@ errr init_x11(int argc, char *argv[])
 
 	/* Init the Metadpy if possible */
 	if (Metadpy_init_name(dpy_name)) return (-1);
+
+	/* Sound, if asked for and there is a way to play it */
+	if (arg_sound) use_sound = init_sound_unix();
 	
 #ifdef USE_GRAPHICS
 	/* We support bigtile mode */
@@ -2959,6 +2967,8 @@ errr init_x11(int argc, char *argv[])
 			total *= td->fnt->hgt;
 
 			TmpData = (char *)malloc(total);
+
+			td->blank = create_pixel(dpy, 0, 0, 0);
 
 			td->TmpImage = XCreateImage(dpy,visual,depth,
 				ZPixmap, 0, TmpData,

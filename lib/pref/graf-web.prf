@@ -1,0 +1,24 @@
+# File: graf-web.prf
+
+#
+# Tile mappings for the browser port (src/main-web.c).  The page draws the
+# same sheets as the other ports (converted to PNG by web/build.sh), so
+# this only chooses the pref file for the tileset picked in its menu.
+#
+
+?:[EQU $GRAF old]
+%:graf-xxx.prf
+
+?:[EQU $GRAF new]
+%:graf-new.prf
+
+?:[EQU $GRAF david]
+%:graf-dvg.prf
+
+?:[EQU $GRAF nomad]
+%:graf-nmd.prf
+
+?:[EQU $GRAF neon]
+%:graf-neo.prf
+
+?:1

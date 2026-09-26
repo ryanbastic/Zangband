@@ -19,3 +19,11 @@
 # David Gervais tiles
 ?:[EQU $GRAF david]
 %:graf-dvg.prf
+
+# Nomad's tiles
+?:[EQU $GRAF nomad]
+%:graf-nmd.prf
+
+# Neon tiles
+?:[EQU $GRAF neon]
+%:graf-neo.prf

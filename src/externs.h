@@ -840,6 +840,12 @@ extern void gamble_dice_slots(void);
 extern bool inn_rest(void);
 extern void build_init(int town_num, int build_num, byte build_type);
 
+#if (defined(USE_X11) || defined(USE_GCU)) && !defined(USE_WEB)
+/* snd-unix.c */
+extern bool init_sound_unix(void);
+extern void play_sound_unix(int v);
+#endif
+
 /* util.c */
 extern void safe_setuid_drop(void);
 extern void safe_setuid_grab(void);

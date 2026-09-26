@@ -65,7 +65,7 @@ files = angdos.cfg readme z_faq.txt z_update.txt
 clean-files = zangband .default_path
 distclean-files = *.bak gmon.out config.log config.status
 
-srcfiles = configure configure.in makefile makefile.in
+srcfiles = configure configure.in makefile Makefile.in
 
 ##
 ## Default target
@@ -116,7 +116,7 @@ zangband: $(objs-y)
 ##
 ## Hack - make sure the build system is consistant.
 ##
-makefile: configure makefile.in
+makefile: configure Makefile.in
 	$(CONFIGURE)
 	
 configure: configure.in

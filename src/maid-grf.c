@@ -231,76 +231,55 @@ cptr get_default_font(int term_num)
  */
 bool pick_graphics(int graphics, int *xsize, int *ysize, char *filename)
 {
+	/*
+	 * The tile sheets, best first.  All of them come from ZangbandTK (see
+	 * scripts/tiles/import-tk-tiles.py) and share one layout convention,
+	 * so they all support transparency and lighting.
+	 */
+	static const struct
+	{
+		int mode;
+		cptr file;
+		int wid, hgt;
+	}
+	sheets[] =
+	{
+		{GRAPHICS_DAVID_GERVAIS, "graf/32x32.bmp", 32, 32},
+		{GRAPHICS_ADAM_BOLT, "graf/16x16.bmp", 16, 16},
+		{GRAPHICS_NOMAD, "graf/nomad.bmp", 16, 16},
+		{GRAPHICS_NEON, "graf/neon.bmp", 16, 16},
+		{GRAPHICS_ORIGINAL, "graf/8x8.bmp", 8, 8},
+	};
+
 	int old_graphics = use_graphics;
+	int i;
 
 	use_graphics = GRAPHICS_NONE;
 	use_transparency = FALSE;
-	
-	if ((graphics == GRAPHICS_ANY) || (graphics == GRAPHICS_DAVID_GERVAIS))
+
+	for (i = 0; i < (int)(sizeof(sheets) / sizeof(sheets[0])); i++)
 	{
-		/* Try the "32x32.bmp" file */
-		path_build(filename, 1024, ANGBAND_DIR_XTRA, "graf/32x32.bmp");
+		int mode = sheets[i].mode;
 
-		/* Use the "32x32.bmp" file if it exists */
-		if (0 == fd_close(fd_open(filename, O_RDONLY)))
+		/* Half-3D mode draws with the 16x16 sheet */
+		if ((graphics == GRAPHICS_HALF_3D) && (mode == GRAPHICS_ADAM_BOLT))
 		{
-			use_transparency = TRUE;
-
-			*xsize = 32;
-			*ysize = 32;
+			mode = GRAPHICS_HALF_3D;
 		}
-		
-		use_graphics = GRAPHICS_DAVID_GERVAIS;
-		
-		/* Did we change the graphics? */
-		return (old_graphics != use_graphics);
-	}
-	
-	/* We failed, or we want 16x16 graphics */
-	if ((graphics == GRAPHICS_ANY) || (graphics == GRAPHICS_ADAM_BOLT) ||
-		 (graphics == GRAPHICS_HALF_3D))
-	{
-		/* Try the "16x16.bmp" file */
-		path_build(filename, 1024, ANGBAND_DIR_XTRA, "graf/16x16.bmp");
 
-		/* Use the "16x16.bmp" file if it exists */
-		if (0 == fd_close(fd_open(filename, O_RDONLY)))
-		{
-			use_transparency = TRUE;
+		if ((graphics != GRAPHICS_ANY) && (graphics != mode)) continue;
 
-			*xsize = 16;
-			*ysize = 16;
+		path_build(filename, 1024, ANGBAND_DIR_XTRA, sheets[i].file);
 
-			/* Use graphics */
-			if (graphics == GRAPHICS_HALF_3D)
-			{
-				use_graphics = GRAPHICS_HALF_3D;
-			}
-			else
-			{
-				use_graphics = GRAPHICS_ADAM_BOLT;
-			}
-			
-			/* Did we change the graphics? */
-			return (old_graphics != use_graphics);
-		}
-	}
+		/* Use the first one that exists */
+		if (0 != fd_close(fd_open(filename, O_RDONLY))) continue;
 
-	/* We failed, or we want 8x8 graphics */
-	if ((graphics == GRAPHICS_ANY) || (graphics == GRAPHICS_ORIGINAL))
-	{
-		/* Try the "8x8.bmp" file */
-		path_build(filename, 1024, ANGBAND_DIR_XTRA, "graf/8x8.bmp");
+		use_graphics = mode;
+		use_transparency = TRUE;
 
-		/* Use the "8x8.bmp" file if it exists */
-		if (0 == fd_close(fd_open(filename, O_RDONLY)))
-		{
-			/* Use graphics */
-			use_graphics = GRAPHICS_ORIGINAL;
-
-			*xsize = 8;
-			*ysize = 8;
-		}
+		*xsize = sheets[i].wid;
+		*ysize = sheets[i].hgt;
+		break;
 	}
 
 	/* Did we change the graphics? */
@@ -2131,8 +2110,7 @@ static void map_info(int x, int y, byte *ap, char *cp, byte *tap, char *tcp)
 					/* Use darkened colour */
 					a = darking_colours[a];
 				}
-				else if ((use_graphics == GRAPHICS_ADAM_BOLT)
-						 && (f_ptr->flags & FF_USE_TRANS))
+				else if (use_graphics && (f_ptr->flags & FF_USE_TRANS))
 				{
 					/* Use a dark tile */
 					c++;
@@ -2146,8 +2124,7 @@ static void map_info(int x, int y, byte *ap, char *cp, byte *tap, char *tcp)
 					/* Use bright colour */
 					a = lighting_colours[a];
 				}
-				else if ((use_graphics == GRAPHICS_ADAM_BOLT)
-						 && (f_ptr->flags & FF_USE_TRANS))
+				else if (use_graphics && (f_ptr->flags & FF_USE_TRANS))
 				{
 					/* Use a light tile */
 					c += 2;
@@ -2195,8 +2172,7 @@ static void map_info(int x, int y, byte *ap, char *cp, byte *tap, char *tcp)
 			if (fld_ptr->info & FIELD_INFO_FEAT)
 			{
 				/* Terrain level */
-				if ((use_graphics == GRAPHICS_ADAM_BOLT)
-					&& (fld_ptr->info & (FIELD_INFO_TRANS)))
+				if (use_graphics && (fld_ptr->info & (FIELD_INFO_TRANS)))
 				{
 					/* Take into account dynamic lighting. */
 					c += fld_ptr->f_char - f_ptr->x_char;

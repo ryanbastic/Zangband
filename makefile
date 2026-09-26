@@ -9,13 +9,13 @@
 ## Please do not edit "makefile", as it is auto-generated
 ## by ./configure from makefile.in  Edit makefile.in instead.
 ##
-## makefile.  Generated from makefile.in by configure.
+## makefile.  Generated from Makefile.in by configure.
 
 CC_AUX := gcc
 
 CFLAGS := -Wsign-compare -Wdeclaration-after-statement -Wnested-externs -Wundef -Wuninitialized -Wunused -Wswitch -Wreturn-type -Wsequence-point -Wparentheses -Wimplicit -Wchar-subscripts -Wredundant-decls -Wstrict-prototypes -Waggregate-return -Wbad-function-cast -Wpointer-arith -Wwrite-strings -Wno-long-long -Wmissing-declarations -Wmissing-prototypes -Wall -W -pedantic -g -O2 -DHAVE_CONFIG_H
 CPPFLAGS := -INONE 
-LIBS := -lz -lrpcsvc -lncurses 
+LIBS := -lz -lncurses -lX11 
 LDFLAGS :=  -LNONE
 
 prefix = /usr/local
@@ -65,7 +65,7 @@ files = angdos.cfg readme z_faq.txt z_update.txt
 clean-files = zangband .default_path
 distclean-files = *.bak gmon.out config.log config.status
 
-srcfiles = configure configure.in makefile makefile.in
+srcfiles = configure configure.in makefile Makefile.in
 
 ##
 ## Default target
@@ -116,7 +116,7 @@ zangband: $(objs-y)
 ##
 ## Hack - make sure the build system is consistant.
 ##
-makefile: configure makefile.in
+makefile: configure Makefile.in
 	$(CONFIGURE)
 	
 configure: configure.in

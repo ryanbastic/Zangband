@@ -43,6 +43,21 @@ static int gamma_val = 0;
 
 
 /*
+ * Place an 8-bit colour component in the bits of a TrueColor mask.
+ */
+static u32b scale_to_mask(byte value, unsigned long mask)
+{
+	int shift = 0, bits = 0;
+
+	while (!(mask & 1)) mask >>= 1, shift++;
+	while (mask & 1) mask >>= 1, bits++;
+
+	if (bits >= 8) return ((u32b)value << (bits - 8)) << shift;
+	return ((u32b)value >> (8 - bits)) << shift;
+}
+
+
+/*
  * Hack -- Convert an RGB value to an X11 Pixel, or die.
  */
 u32b create_pixel(Display *dpy, byte red, byte green, byte blue)
@@ -73,6 +88,19 @@ u32b create_pixel(Display *dpy, byte red, byte green, byte blue)
 	}
 
 #endif /* SUPPORT_GAMMA */
+
+	/* TrueColor: the pixel is the colour, no need to ask the server */
+	{
+		Visual *visual = DefaultVisual(dpy, DefaultScreen(dpy));
+
+		if ((visual->class == TrueColor) && visual->red_mask &&
+		    visual->green_mask && visual->blue_mask)
+		{
+			return (scale_to_mask(red, visual->red_mask) |
+			        scale_to_mask(green, visual->green_mask) |
+			        scale_to_mask(blue, visual->blue_mask));
+		}
+	}
 
 	/* Build the color */
 
@@ -266,7 +294,7 @@ XImage *ReadBMP(Display *dpy, char *Name)
 
 
 	/* Open the BMP file */
-	f = fopen(Name, "r");
+	f = fopen(Name, "rb");
 
 	/* No such file */
 	if (f == NULL)
@@ -364,7 +392,8 @@ XImage *ReadBMP(Display *dpy, char *Name)
 				/* Verify not at end of file XXX XXX */
 				if (feof(f)) quit_fmt("Unexpected end of file in %s", Name);
 
-				XPutPixel(Res, x, y2, create_pixel(dpy, ch, c2, c3));
+				/* BMP stores blue, green, red */
+				XPutPixel(Res, x, y2, create_pixel(dpy, c3, c2, ch));
 			}
 			else if (infoheader.biBitCount == 8)
 			{
@@ -381,6 +410,15 @@ XImage *ReadBMP(Display *dpy, char *Name)
 				/* Technically 1 bit is legal too */
 				quit_fmt("Illegal biBitCount %d in %s",
 						 infoheader.biBitCount, Name);
+			}
+		}
+
+		/* Rows are padded to a multiple of four bytes */
+		if (infoheader.biBitCount == 24)
+		{
+			for (x = (infoheader.biWidth * 3) % 4; x && (x < 4); x++)
+			{
+				(void)getc(f);
 			}
 		}
 	}

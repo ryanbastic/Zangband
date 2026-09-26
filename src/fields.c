@@ -1331,8 +1331,7 @@ void test_field_data_integrity(void)
 void set_corpse_size(field_type *f_ptr, int size)
 {
 	/* Initialise the graphic */
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-			(use_graphics == GRAPHICS_DAVID_GERVAIS))
+	if (use_graphics)
 	{
 		/* Paranoia */
 		if ((size > 0) && (size < 7))

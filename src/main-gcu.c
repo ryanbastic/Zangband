@@ -784,6 +784,11 @@ static errr Term_xtra_gcu(int n, int v)
 		case TERM_XTRA_REACT:
 		Term_xtra_gcu_react();
 		return (0);
+
+		/* Make a sound */
+		case TERM_XTRA_SOUND:
+		play_sound_unix(v);
+		return (0);
 	}
 
 	/* Unknown */
@@ -993,6 +998,9 @@ errr init_gcu(void)
 	{
 		quit("Angband needs at least an 80x24 'curses' screen");
 	}
+
+	/* Sound, if asked for and there is a way to play it */
+	if (arg_sound) use_sound = init_sound_unix();
 
 #ifdef USE_GRAPHICS
 	/* Set graphics flag */

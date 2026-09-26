@@ -9739,7 +9739,7 @@ fi
 
 
 
-          ac_config_files="$ac_config_files makefile"
+          ac_config_files="$ac_config_files makefile:Makefile.in"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10265,7 +10265,7 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
-  "makefile" ) CONFIG_FILES="$CONFIG_FILES makefile" ;;
+  "makefile" ) CONFIG_FILES="$CONFIG_FILES makefile:Makefile.in" ;;
   "src/autoconf.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/autoconf.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

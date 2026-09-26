@@ -16,11 +16,15 @@ files += $(addprefix lib/pref/,colors.prf \
 	font.prf \
 	graf-ami.prf \
 	graf-dos.prf \
+	graf-dvg.prf \
 	graf-gcu.prf \
 	graf-ibm.prf \
 	graf-lsl.prf \
 	graf-mac.prf \
+	graf-neo.prf \
 	graf-new.prf \
+	graf-nmd.prf \
+	graf-web.prf \
 	graf-win.prf \
 	graf-x11.prf \
 	graf-xaw.prf \

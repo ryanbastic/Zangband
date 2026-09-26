@@ -51,6 +51,8 @@
 
 ?:[EQU $SYS acn]
 %:graf-acn.prf
+?:[EQU $SYS web]
+%:graf-web.prf
 
 ?:1
 

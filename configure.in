@@ -285,5 +285,5 @@ dnl This is turned off since the Tk and GTK headers are
 dnl not const-correct with literal strings.
 dnl AC_CHECK_CC_OPT(-Wcast-qual)
 
-AC_CONFIG_FILES([makefile])
+AC_CONFIG_FILES([makefile:Makefile.in])
 AC_OUTPUT

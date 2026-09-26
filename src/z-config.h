@@ -118,6 +118,13 @@
 # undef SAFE_SETUID_POSIX
 #endif
 
+/*
+ * There are no user or group ids to drop in a web browser.
+ */
+#ifdef USE_WEB
+# undef SAFE_SETUID
+#endif
+
 
 /* Debug mode options */
 #ifdef USE_DEBUG

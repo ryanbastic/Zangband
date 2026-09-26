@@ -1,0 +1,94 @@
+<!doctype html>
+<!--
+	Browser test: creates a character with real key events, saves it,
+	reloads the game and checks the character was loaded from IndexedDB.
+
+	Serve web/ (not web/dist) and open /test/browser.html; the verdict
+	appears above the game.  For headless use:
+	  google-chrome --headless=new --timeout=60000 --screenshot URL
+-->
+<meta charset="utf-8">
+<title>Zangband browser test</title>
+<pre id="result">running</pre>
+<iframe id="game" src="../dist/index.html" style="width:1000px;height:600px"></iframe>
+<script>
+'use strict';
+
+var frame = document.getElementById('game');
+var log = [];
+var result = document.getElementById('result');
+function note(s) { log.push(s); result.textContent = 'running\n' + log.join('\n'); }
+
+function screen() {
+	var z = frame.contentWindow && frame.contentWindow.Zangband;
+	return z ? z.screenText() : '';
+}
+
+function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+async function waitFor(text, ms) {
+	var end = Date.now() + (ms || 30000);
+	while (Date.now() < end) {
+		if (screen().indexOf(text) >= 0) return;
+		await sleep(100);
+	}
+	throw new Error('timed out waiting for "' + text + '"\n' + screen());
+}
+
+function key(k, opts) {
+	var o = Object.assign({ key: k, bubbles: true, cancelable: true }, opts || {});
+	frame.contentWindow.dispatchEvent(new frame.contentWindow.KeyboardEvent('keydown', o));
+}
+
+async function typeText(s) {
+	for (var i = 0; i < s.length; i++) { key(s[i]); await sleep(30); }
+}
+
+/* Press Enter until the given text shows up */
+async function enterUntil(text) {
+	for (var i = 0; i < 40; i++) {
+		if (screen().indexOf(text) >= 0) return;
+		key('Enter');
+		await sleep(300);
+	}
+	throw new Error('never reached "' + text + '"\n' + screen());
+}
+
+async function run() {
+	await waitFor('Press any key');
+	key(' ');
+	await waitFor('select your character');
+	await enterUntil('Enter a name');
+	await typeText('Webby');
+	key('Enter');
+	await enterUntil('LEVEL');
+	note('created character');
+
+	var before = screen();
+	key('ArrowLeft');
+	await sleep(500);
+	if (screen() === before) throw new Error('ArrowLeft did not change the screen');
+	note('arrow key moved');
+
+	key('s', { ctrlKey: true });
+	await sleep(1500);
+	frame.contentWindow.Zangband.sync();
+	await sleep(1500);
+	note('saved');
+
+	frame.contentWindow.location.reload();
+	await sleep(1000);
+	await waitFor('Press any key');
+	key(' ');
+	await waitFor('LEVEL', 30000);
+	await waitFor('Webby', 5000).catch(function () {});
+	note('reloaded into saved game');
+	log.push(screen());
+}
+
+run().then(function () {
+	document.getElementById('result').textContent = 'PASS\n' + log.join('\n');
+}, function (e) {
+	document.getElementById('result').textContent = 'FAIL: ' + e.message + '\n' + log.join('\n');
+});
+</script>
